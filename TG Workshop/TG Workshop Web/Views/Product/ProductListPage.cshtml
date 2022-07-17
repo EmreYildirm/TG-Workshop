@@ -1,0 +1,113 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<div class="col-12">
+
+    <div class="row">
+        <div class="card"></div>
+        <div class="card-header"> Bilgisayarlar</div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <div class="card"></div>
+            <div class="card-body">
+                Kategoriler
+                <div class="form-check">
+                    <label class="content">
+                        <input name="bilgisayarturu" class="form-check-input" type="checkbox" value="1">
+                        Oyun Bilgisayarları
+                    </label>
+
+                </div>
+                <div class="form-check">
+                    <label class="content">
+                        <input name="bilgisayarturu" class="form-check-input" type="checkbox" value="2">
+                        İş Bilgisyarları
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="col-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="grid-container" id="products">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<style>
+    .grid-container {
+        display: grid;
+        grid-template-columns: auto auto auto auto;
+        gap: 10px;
+        background-color: #2196F3;
+        padding: 10px;
+    }
+
+    .column {
+        background-color: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.8);
+        padding: 20px;
+        font-size: 30px;
+        text-align: center;
+    }
+</style>
+<script>
+    var queryList = [];
+    $(document).ready(function() {
+        getAllProducts();
+    });
+
+    async function getAllProducts() {
+        var data = await $.get("/Product/GetProductList").then(x => { return x });
+        $('#products').html('');
+        var grid = document.getElementById('products');
+        data.forEach(function(item) {
+            let column = document.createElement("div");
+            var string =item.name;
+            column.append(string);
+            column.className = 'column';
+            grid.appendChild(column);
+        });
+        console.log(data);
+    };
+    // When you click on the category, the change function is written to bring the products according to the category.
+    $("[name='bilgisayarturu']").change(function() {
+        if (this.checked) {
+            queryList.push(this.value)
+            getAllProductsWithQuery();
+        }
+        else {
+            queryList = queryList.filter(m => {
+                return m !== this.value;
+            });
+            if (queryList.length > 0) {
+                getAllProductsWithQuery();
+            }
+            else {
+                getAllProducts();
+            }
+        }
+    });
+
+    async function getAllProductsWithQuery() {
+        var productQuery = {
+            categories: queryList
+        }
+        var data = await $.post("/Product/GetProductListWithQuery", productQuery).then(x => { return x })
+        $('#products').html('');
+        var grid = document.getElementById('products');
+        data.forEach(function(item) {
+            let column = document.createElement("div");
+            var string = item.name;
+            column.append(string);
+            column.className = 'column';
+            grid.appendChild(column);
+        });
+        console.log(data);
+    };
+</script>
